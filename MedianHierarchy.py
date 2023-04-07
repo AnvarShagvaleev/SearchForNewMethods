@@ -14,8 +14,8 @@ def MedianHierarchy(points, metric='euclidean'):
     init_dist = dist.copy()
     
     
-    print('Distance matrix: 0 step')
-    print(pd.DataFrame(dist))
+    # print('Distance matrix: 0 step')
+    # print(pd.DataFrame(dist))
     
     dist[dist == 0] = np.max(dist) + 1
     
@@ -27,7 +27,7 @@ def MedianHierarchy(points, metric='euclidean'):
     dtype = '<U' + str(5 * sum([len(i) for i in clusters]))
     clusters = np.array(clusters, dtype=dtype)
 
-    print(f"\nClusters:{clusters}\n\n")
+    # print(f"\nClusters:{clusters}\n\n")
     
     ultra_dists = []
     for k in range(len(dist) - 1):
@@ -39,10 +39,10 @@ def MedianHierarchy(points, metric='euclidean'):
         c1 = clusters[indices[0]]
         c2 = clusters[indices[1]]
         new_cluster = f'({c1}, {c2})'
-        print(new_cluster)
+        # print(new_cluster)
         clusters = np.delete(clusters, indices)
         clusters = np.insert(clusters, 0, new_cluster, axis=0)
-        print('Clusters:', clusters)
+        # print('Clusters:', clusters)
 
         
         new_dist = np.delete(dist, indices[0], axis=0)
@@ -75,9 +75,9 @@ def MedianHierarchy(points, metric='euclidean'):
             new_dist[i][i] = 0
         
 
-        print(f'Distance matrix: {k + 1} step')
-        print(pd.DataFrame(new_dist, columns=clusters, index=clusters))
-        print("\n\n")
+        # print(f'Distance matrix: {k + 1} step')
+        # print(pd.DataFrame(new_dist, columns=clusters, index=clusters))
+        # print("\n\n")
 
         new_dist[new_dist == 0] = np.max(new_dist) + 1
 
