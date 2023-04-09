@@ -47,12 +47,12 @@ def pipe(points, method):
 def get_gen_sample(size):
     N = int(size / 3)
 
-    norm1 = sts.norm(1, 0.2)
-    norm2 = sts.norm(1.5, 0.1)
-    norm3 = sts.norm(2, 0.2)
+    norm1 = sts.norm(100, 20)
+    norm2 = sts.norm(150, 20)
+    norm3 = sts.norm(200, 20)
 
-    x = np.append(norm1.rvs(N), np.append(norm2.rvs(N), norm3.rvs(N), axis=0), axis=0)
-    y = np.append(norm1.rvs(N), np.append(norm2.rvs(N), norm3.rvs(N), axis=0), axis=0)
+    x = np.append(norm1.rvs(N).round(1), np.append(norm2.rvs(N).round(1), norm3.rvs(N).round(1), axis=0), axis=0)
+    y = np.append(norm1.rvs(N).round(1), np.append(norm2.rvs(N).round(1), norm3.rvs(N).round(1), axis=0), axis=0)
 
     points = list(zip(x, y))
 
@@ -84,13 +84,13 @@ def RunExperiment(size, sample_size, n_iter, FUNCOFMETHODS):
         return "n_iter * sample_size >= size, сделайтее size больше"
     
     points = get_gen_sample(size)
-    ssamples = []
+    Samples = []
     all_ultradists = {name: [] for name in FUNCOFMETHODS.keys()}
 
     for _ in range(n_iter):
         indices = np.random.choice(points.shape[0], size=sample_size, replace=False)
         sample = points[indices]
-        ssamples.append(sample)
+        Samples.append(sample)
 
         for method_name, method_func in FUNCOFMETHODS.items():
             metrics_both_and_ultradists = pipe(sample, method_func)
@@ -101,5 +101,23 @@ def RunExperiment(size, sample_size, n_iter, FUNCOFMETHODS):
     ResultsForMax = pd.DataFrame(MetricsByMethodsForMax)
     ResultsForSum = pd.DataFrame(MetricsByMethodsForSum)
 
-    return ResultsForMax, ResultsForSum, ssamples, all_ultradists
+    return ResultsForMax, ResultsForSum, Samples, all_ultradists
 
+
+def RunCheck(Samples, FUNCOFMETHODS):
+
+    MetricsByMethodsForMax = {method_name: [] for method_name in FUNCOFMETHODS.keys()}
+    MetricsByMethodsForSum = {method_name: [] for method_name in FUNCOFMETHODS.keys()}
+    all_ultradists = {name: [] for name in FUNCOFMETHODS.keys()}
+
+    for sample in Samples:
+        for method_name, method_func in FUNCOFMETHODS.items():
+            metrics_both_and_ultradists = pipe(sample, method_func)
+            MetricsByMethodsForMax[method_name].append(metrics_both_and_ultradists[0])
+            MetricsByMethodsForSum[method_name].append(metrics_both_and_ultradists[1])
+            all_ultradists[method_name].append(metrics_both_and_ultradists[2])
+
+    ResultsForMax = pd.DataFrame(MetricsByMethodsForMax)
+    ResultsForSum = pd.DataFrame(MetricsByMethodsForSum)
+
+    return ResultsForMax, ResultsForSum, Samples, all_ultradists

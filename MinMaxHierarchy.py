@@ -22,7 +22,6 @@ def MinMaxHierarchy(points, logs_turn_on=False, metric='euclidean'):
     
     
     clusters = [str(i) for i in range(len(dist))]
-    init_clusters = tuple(map(int, clusters.copy())) # DELETE
     
     
     dtype = '<U' + str(5 * sum([len(i) for i in clusters]))
@@ -40,7 +39,6 @@ def MinMaxHierarchy(points, logs_turn_on=False, metric='euclidean'):
         c1 = clusters[indices[0]]
         c2 = clusters[indices[1]]
         new_cluster = f'({c1}, {c2})'
-        # print(new_cluster)
         clusters = np.delete(clusters, indices)
         clusters = np.insert(clusters, 0, new_cluster, axis=0)
         nprint(('Clusters:', clusters), logs_turn_on)
