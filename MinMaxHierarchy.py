@@ -43,7 +43,7 @@ def MinMaxHierarchy(points, logs_turn_on=False, metric='euclidean'):
         clusters = np.insert(clusters, 0, new_cluster, axis=0)
         nprint(('Clusters:', clusters), logs_turn_on)
 
-        
+        indices = tuple(sorted(indices))
         new_dist = np.delete(dist, indices[0], axis=0)
         new_dist = np.delete(new_dist, indices[1] - 1, axis=0)
         new_dist = np.delete(new_dist, indices[0], axis=1)
@@ -65,6 +65,8 @@ def MinMaxHierarchy(points, logs_turn_on=False, metric='euclidean'):
                 else:
                     for i in make_tuple(new_dist.columns[0]):
                         options.append(init_dist[i][other_cluster])
+
+
                 new_dist.iloc[0, p] = new_dist.iloc[p, 0] = (np.min(options) + np.max(options)) / 2
 
         new_dist = np.array(new_dist)

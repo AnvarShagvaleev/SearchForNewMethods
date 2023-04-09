@@ -68,7 +68,7 @@ def times_when_method_better(results):
 
     for col in results.columns:
         for ind in results.columns:
-            res = results[results[ind] < results[col]].shape[0] / results.shape[0]
+            res = results[results[ind] <= results[col]].shape[0] / results.shape[0]
             ResultsMatrix[col][ind] = res
 
     return ResultsMatrix.astype(float)

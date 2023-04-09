@@ -22,3 +22,9 @@ def comparison_of_two(ResultsForMetric, Samples, mone, mtwo, metric='max'):
             flag = 1
     if flag != 1:
         print("Случаев не обнаружено")
+
+
+def Lprint(text):
+    with open("LOGOS_TO_M.txt", "a") as file:
+                    file.write(text)
+                    file.write("\n")
