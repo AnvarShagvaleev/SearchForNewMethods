@@ -53,3 +53,7 @@ def ultramatrix(clusters, ds):
         ultra_fill(ds, len(ds) - 1 - k, clsr, ultra)
 
     return ultra
+
+def nprint(text, switch):
+    if switch == True:
+        print(text)

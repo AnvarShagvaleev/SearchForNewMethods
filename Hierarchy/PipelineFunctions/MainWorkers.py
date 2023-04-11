@@ -1,11 +1,8 @@
-from MinMaxHierarchy import MinMaxHierarchy
-from MedianHierarchy import MedianHierarchy
-from Linkages import single_linked
-from Linkages import complete_linked
-from Linkages import group_average_linked
-from Linkages import weighted_average_linked
-from UltrametricMatrix import ultramatrix
-from HierarchyClusteringWithoutLogs import hierarchy
+from Hierarchy.MinMaxMethod import MinMaxHierarchy
+from Hierarchy.MedianMethod import MedianHierarchy
+from Hierarchy.ToCulcMethods.Linkages import single_linked, complete_linked, group_average_linked, weighted_average_linked
+from Hierarchy.ToCulcMethods.UltrametricMatrix import ultramatrix
+from Hierarchy.StandartMethods import hierarchy
 import numpy as np
 import scipy.stats as sts
 import pandas as pd
@@ -13,7 +10,7 @@ import pickle
 import os
 import datetime
 from tqdm import tqdm
-import time 
+import time
 
 
 FUNCOFMETHODS = {

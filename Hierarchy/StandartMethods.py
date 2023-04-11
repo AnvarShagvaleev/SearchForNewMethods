@@ -1,35 +1,35 @@
+from Hierarchy.ToCulcMethods.UltrametricMatrix import count_clusters, nprint
+from Hierarchy.ToCulcMethods.Linkages import single_linked
 from ast import literal_eval as make_tuple
+from sklearn.metrics import pairwise_distances
 import numpy as np
 import pandas as pd
-from sklearn.metrics import pairwise_distances
-from ast import literal_eval as make_tuple
-from UltrametricMatrix import flatten
-from SomeFunc import nprint
 
 
-def MedianHierarchy(points, logs_turn_on=False, metric='euclidean'):
+
+def hierarchy(points, metric='euclidean', method=single_linked, logs_turn_on=False):
     dist = pairwise_distances(points, metric=metric).round(6)
+
     for i in range(len(dist)):
         dist[i][i] = 0
 
     init_dist = dist.copy()
-    
-    
+
     nprint('Distance matrix: 0 step', logs_turn_on)
     nprint(pd.DataFrame(dist), logs_turn_on)
     
+
     dist[dist == 0] = np.max(dist) + 1
     
     
     clusters = [str(i) for i in range(len(dist))]
-    init_clusters = tuple(map(int, clusters.copy())) # DELETE
     
     
     dtype = '<U' + str(5 * sum([len(i) for i in clusters]))
     clusters = np.array(clusters, dtype=dtype)
 
     nprint(f"\nClusters:{clusters}\n\n", logs_turn_on)
-    
+
     ultra_dists = []
     for k in range(len(dist) - 1):
         indices = np.unravel_index(np.argmin(dist), dist.shape)
@@ -44,7 +44,7 @@ def MedianHierarchy(points, logs_turn_on=False, metric='euclidean'):
         clusters = np.insert(clusters, 0, new_cluster, axis=0)
         nprint(('Clusters:', clusters), logs_turn_on)
 
-        indices = tuple(sorted(indices))
+        
         new_dist = np.delete(dist, indices[0], axis=0)
         new_dist = np.delete(new_dist, indices[1] - 1, axis=0)
         new_dist = np.delete(new_dist, indices[0], axis=1)
@@ -52,34 +52,27 @@ def MedianHierarchy(points, logs_turn_on=False, metric='euclidean'):
         new_dist = np.insert(new_dist, 0, 0, axis=1)
         new_dist = np.insert(new_dist, 0, 0, axis=0)
 
-        
-        new_dist = pd.DataFrame(new_dist, columns=clusters, index=clusters)
 
-        for p, other_cluster in enumerate(new_dist.columns):
-            options = []
-            if p != 0:
-                if type(other_cluster) == str:
-                    other_cluster = flatten(make_tuple(other_cluster))
-                    for j in other_cluster:
-                        for i in flatten(make_tuple(new_dist.columns[0])):
-                            options.append(init_dist[i][j])
-                else:
-                    for i in make_tuple(new_dist.columns[0]):
-                        options.append(init_dist[i][other_cluster])
-                new_dist.iloc[0, p] = new_dist.iloc[p, 0] = np.median(options)
+        cur_index = 0
+        for i in range(len(dist)):
+            if i not in indices:
+                cur_index += 1
+                new_dist[0][cur_index] = new_dist[cur_index][0] = method(
+                    dist,
+                    indices[0],
+                    indices[1], 
+                    i,
+                    clusters_param=count_clusters(make_tuple(new_cluster))
+                )
 
-        new_dist = np.array(new_dist)
-        
+        new_dist[0][0] = np.max(new_dist) + 1
 
-        for i in range(len(new_dist)):
-            new_dist[i][i] = 0
-        
-
+        dist_for_log = new_dist.copy()
+        for i in range(len(dist_for_log)):
+            dist_for_log[i][i] = 0
         nprint(f'Distance matrix: {k + 1} step', logs_turn_on)
-        nprint(pd.DataFrame(new_dist, columns=clusters, index=clusters), logs_turn_on)
+        nprint(pd.DataFrame(dist_for_log), logs_turn_on)
         nprint("\n\n", logs_turn_on)
-
-        new_dist[new_dist == 0] = np.max(new_dist) + 1
 
         dist = new_dist.round(6)
     

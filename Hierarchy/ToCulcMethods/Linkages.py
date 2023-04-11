@@ -1,4 +1,4 @@
-from LanceWillliams import LanceWillliams
+from Hierarchy.ToCulcMethods.LanceWillliams import LanceWillliams
 
 def single_linked(dist, i, j, k, clusters_param=0):
     alpha_u, alpha_v, beta, gamma = 0.5, 0.5, 0, -0.5

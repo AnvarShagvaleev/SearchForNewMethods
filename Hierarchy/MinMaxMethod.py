@@ -1,10 +1,9 @@
+from Hierarchy.ToCulcMethods.UltrametricMatrix import flatten, nprint
 from ast import literal_eval as make_tuple
+from sklearn.metrics import pairwise_distances
 import numpy as np
 import pandas as pd
-from sklearn.metrics import pairwise_distances
-from ast import literal_eval as make_tuple
-from UltrametricMatrix import flatten
-from SomeFunc import nprint
+
 
 
 def MinMaxHierarchy(points, logs_turn_on=False, metric='euclidean'):
