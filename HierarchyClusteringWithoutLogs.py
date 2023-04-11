@@ -8,7 +8,7 @@ from SomeFunc import nprint
 
 
 def hierarchy(points, metric='euclidean', method=single_linked, logs_turn_on=False):
-    dist = pairwise_distances(points, metric=metric)
+    dist = pairwise_distances(points, metric=metric).round(6)
 
     for i in range(len(dist)):
         dist[i][i] = 0
@@ -74,6 +74,6 @@ def hierarchy(points, metric='euclidean', method=single_linked, logs_turn_on=Fal
         nprint(pd.DataFrame(dist_for_log), logs_turn_on)
         nprint("\n\n", logs_turn_on)
 
-        dist = new_dist
+        dist = new_dist.round(6)
     
     return make_tuple(clusters[0]), init_dist, ultra_dists

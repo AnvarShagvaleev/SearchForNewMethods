@@ -8,7 +8,7 @@ from SomeFunc import nprint
 
 
 def MinMaxHierarchy(points, logs_turn_on=False, metric='euclidean'):
-    dist = pairwise_distances(points, metric=metric)
+    dist = pairwise_distances(points, metric=metric).round(6)
     for i in range(len(dist)):
         dist[i][i] = 0
 
@@ -82,6 +82,6 @@ def MinMaxHierarchy(points, logs_turn_on=False, metric='euclidean'):
 
         new_dist[new_dist == 0] = np.max(new_dist) + 1
 
-        dist = new_dist
+        dist = new_dist.round(6)
     
     return make_tuple(clusters[0]), init_dist, ultra_dists

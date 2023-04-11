@@ -9,6 +9,11 @@ from HierarchyClusteringWithoutLogs import hierarchy
 import numpy as np
 import scipy.stats as sts
 import pandas as pd
+import pickle
+import os
+import datetime
+from tqdm import tqdm
+import time 
 
 
 FUNCOFMETHODS = {
@@ -47,9 +52,9 @@ def pipe(points, method):
 def get_gen_sample(size):
     N = int(size / 3)
 
-    norm1 = sts.norm(100, 20)
-    norm2 = sts.norm(150, 20)
-    norm3 = sts.norm(200, 20)
+    norm1 = sts.norm(100, 40)
+    norm2 = sts.norm(200, 40)
+    norm3 = sts.norm(300, 40)
 
     x = np.append(norm1.rvs(N).round(1), np.append(norm2.rvs(N).round(1), norm3.rvs(N).round(1), axis=0), axis=0)
     y = np.append(norm1.rvs(N).round(1), np.append(norm2.rvs(N).round(1), norm3.rvs(N).round(1), axis=0), axis=0)
@@ -75,6 +80,43 @@ def times_when_method_better(results):
 
 
 # Основная функция, которая запускает программу
+def NewRunExperiment(size, sample_size, n_iter, FUNCOFMETHODS):
+
+    if n_iter * sample_size >= size:
+        return "n_iter * sample_size >= size, сделайтее size больше"
+    
+    points = get_gen_sample(size)
+
+
+    now = str(datetime.datetime.today().replace(microsecond=0))
+    os.mkdir(f"./LOGS/{now}")
+
+    F_Samples = open(f"./LOGS/{now}/Samples", 'wb')
+    F_MetricsByMethodsForMax = open(f"./LOGS/{now}/MetricsByMethodsForMax", 'wb')
+    F_MetricsByMethodsForSum = open(f"./LOGS/{now}/MetricsByMethodsForSum", 'wb')
+    F_Ultradists = open(f"./LOGS/{now}/Ultradists", 'wb')
+    F_NameOfMethod = open(f"./LOGS/{now}/NameOfMethod", 'wb')
+    F_TimeLogs = open(f"./LOGS/{now}/TimeLogs", 'wb')
+
+    for _ in tqdm(range(n_iter)):
+        indices = np.random.choice(points.shape[0], size=sample_size, replace=False)
+        sample = points[indices]
+
+        for method_name, method_func in FUNCOFMETHODS.items():
+            tp1 = time.time()
+            metrics_both_and_ultradists = pipe(sample, method_func)
+            tp2 = time.time()
+
+            pickle.dump(sample, F_Samples)
+            pickle.dump(metrics_both_and_ultradists[0], F_MetricsByMethodsForMax)
+            pickle.dump(metrics_both_and_ultradists[1], F_MetricsByMethodsForSum)
+            pickle.dump(metrics_both_and_ultradists[2], F_Ultradists)
+            pickle.dump(method_name, F_NameOfMethod)
+            pickle.dump(tp2-tp1, F_TimeLogs)
+
+    return now
+
+
 def RunExperiment(size, sample_size, n_iter, FUNCOFMETHODS):
 
     MetricsByMethodsForMax = {method_name: [] for method_name in FUNCOFMETHODS.keys()}
@@ -104,6 +146,7 @@ def RunExperiment(size, sample_size, n_iter, FUNCOFMETHODS):
     return ResultsForMax, ResultsForSum, Samples, all_ultradists
 
 
+
 def RunCheck(Samples, FUNCOFMETHODS):
 
     MetricsByMethodsForMax = {method_name: [] for method_name in FUNCOFMETHODS.keys()}
@@ -121,3 +164,29 @@ def RunCheck(Samples, FUNCOFMETHODS):
     ResultsForSum = pd.DataFrame(MetricsByMethodsForSum)
 
     return ResultsForMax, ResultsForSum, Samples, all_ultradists
+
+
+def ReadLogs(now):
+    file_names = (
+        'TimeLogs',
+        'Ultradists',
+        'Samples',
+        'MetricsByMethodsForMax',
+        'MetricsByMethodsForSum',
+        'NameOfMethod'
+    )
+
+    filedata = dict()
+
+    for name in file_names:
+        data_from_file = open(f'./LOGS/{now}/{name}', 'rb')
+        data_list = []
+        while 1:
+            try:
+                data_list.append(pickle.load(data_from_file))
+            except EOFError:
+                break
+        
+        filedata[name] = data_list
+    
+    return filedata['TimeLogs'], filedata['Ultradists'], filedata['Samples'], filedata['MetricsByMethodsForMax'], filedata['MetricsByMethodsForSum'], filedata['NameOfMethod']
