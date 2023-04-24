@@ -1,13 +1,13 @@
 from Hierarchy.ToCulcMethods.UltrametricMatrix import flatten, nprint
 from ast import literal_eval as make_tuple
-from sklearn.metrics import pairwise_distances
 import numpy as np
 import pandas as pd
-
+from scipy.spatial.distance import pdist
+from scipy.spatial.distance import squareform
 
 
 def MinMaxHierarchy(points, logs_turn_on=False, metric='euclidean'):
-    dist = pairwise_distances(points, metric=metric).round(6)
+    dist = squareform(pdist(points, metric))
     for i in range(len(dist)):
         dist[i][i] = 0
 
