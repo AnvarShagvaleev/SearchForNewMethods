@@ -53,17 +53,6 @@ def pipe(points, method, dist_metric):
     return max_abs, norm_sum_abs, ultra_dists, norm_diff
 
 
-# Функция `get_gen_sample(size, func)` генерирует кластеры
-def get_gen_sample(size, func, dim):
-
-    res = func(size, dim)
-
-    if type(res) == np.ndarray:
-        return res
-    else:
-        return "Type of function func must be numpy.ndarray"
-
-
 # Функция `times_when_method_better(results, res_column)` создает матрицу, которая показывает соотношение
 # количества раз, когда метрика по указанному в строке методу оказалась меньше, чем метрика по указанному
 # в столбце методу, к общему количеству экспериментов
@@ -94,37 +83,48 @@ def MakeDendogram(sample, ultras):
                         va='top', ha='center')
 
 
-# Основная функция, которая запускает программу
-def NewRunExperiment(size, func, sample_size, n_iter, FUNCOFMETHODS, dist_metric, dim):
-
+# ВСЕ ЧТО С NEW в разработке
+def generator(func, size, sample_size, n_iter, dim):
     if n_iter * sample_size >= size:
         return "n_iter * sample_size >= size, сделайте size больше"
     
-    points = get_gen_sample(size, func, dim)
-
-
     n_iter_format = str(n_iter) if n_iter < 1000 else f"{n_iter / 1000}k"
-    now = f"{str(dim)+'dim'}-{dist_metric}-{sample_size}-{n_iter_format} {str(datetime.datetime.today().replace(microsecond=0))}"
-    os.mkdir(f"./LOGS/{now}")
+    Samples_name = f"{str(dim)+'dim'}-{sample_size}-{n_iter_format} {str(datetime.datetime.today().replace(microsecond=0))}"
+    os.mkdir(f"./new_LOGS/{Samples_name}")
+    file_name = f"./new_LOGS/{Samples_name}/Samples"
 
-    F_Samples = open(f"./LOGS/{now}/Samples", 'wb')
-    F_MetricsByMethodsForMax = open(f"./LOGS/{now}/MetricsByMethodsForMax", 'wb')
-    F_MetricsByMethodsForSum = open(f"./LOGS/{now}/MetricsByMethodsForSum", 'wb')
-    F_Ultradists = open(f"./LOGS/{now}/Ultradists", 'wb')
-    F_NameOfMethod = open(f"./LOGS/{now}/NameOfMethod", 'wb')
-    F_TimeLogs = open(f"./LOGS/{now}/TimeLogs", 'wb')
-    F_NormDiff = open(f"./LOGS/{now}/NormDiff", "wb")
+    F_Samples = open(file_name, 'wb')
 
-    for _ in tqdm(range(n_iter)):
+    Samples = []
+    points = func(size, dim)
+    for _ in range(n_iter):
         indices = np.random.choice(points.shape[0], size=sample_size, replace=False)
-        sample = points[indices]
+        Samples.append(points[indices])
 
+    pickle.dump(Samples, F_Samples)
+
+    return file_name
+
+
+def RunExperiment(dist_metric, dir_name, Samples, FUNCOFMETHODS=FUNCOFMETHODS):
+
+    dir_name = f"{dir_name}/{dist_metric}"
+    os.mkdir(dir_name)
+
+    F_MetricsByMethodsForMax = open(f"{dir_name}/MetricsByMethodsForMax", 'wb')
+    F_MetricsByMethodsForSum = open(f"{dir_name}/MetricsByMethodsForSum", 'wb')
+    F_Ultradists = open(f"{dir_name}/Ultradists", 'wb')
+    F_NameOfMethod = open(f"{dir_name}/NameOfMethod", 'wb')
+    F_TimeLogs = open(f"{dir_name}/TimeLogs", 'wb')
+    F_NormDiff = open(f"{dir_name}/NormDiff", "wb")
+
+
+    for sample in tqdm(Samples):
         for method_name, method_func in FUNCOFMETHODS.items():
             tp1 = time.time()
             metrics_both_and_ultradists = pipe(sample, method_func, dist_metric)
             tp2 = time.time()
 
-            pickle.dump(sample, F_Samples) # - тут переместить
             pickle.dump(metrics_both_and_ultradists[0], F_MetricsByMethodsForMax)
             pickle.dump(metrics_both_and_ultradists[1], F_MetricsByMethodsForSum)
             pickle.dump(metrics_both_and_ultradists[2], F_Ultradists)
@@ -132,63 +132,13 @@ def NewRunExperiment(size, func, sample_size, n_iter, FUNCOFMETHODS, dist_metric
             pickle.dump(method_name, F_NameOfMethod)
             pickle.dump(tp2-tp1, F_TimeLogs)
 
-    return now
+    return dir_name
 
 
-def RunExperiment(size, func, sample_size, n_iter, FUNCOFMETHODS, dist_metric):
-
-    MetricsByMethodsForMax = {method_name: [] for method_name in FUNCOFMETHODS.keys()}
-    MetricsByMethodsForSum = {method_name: [] for method_name in FUNCOFMETHODS.keys()}
-
-    if n_iter * sample_size >= size:
-        return "n_iter * sample_size >= size, сделайтее size больше"
-    
-    points = get_gen_sample(size, func)
-    Samples = []
-    all_ultradists = {name: [] for name in FUNCOFMETHODS.keys()}
-
-    for _ in range(n_iter):
-        indices = np.random.choice(points.shape[0], size=sample_size, replace=False)
-        sample = points[indices]
-        Samples.append(sample)
-
-        for method_name, method_func in FUNCOFMETHODS.items():
-            metrics_both_and_ultradists = pipe(sample, method_func, dist_metric)
-            MetricsByMethodsForMax[method_name].append(metrics_both_and_ultradists[0])
-            MetricsByMethodsForSum[method_name].append(metrics_both_and_ultradists[1])
-            all_ultradists[method_name].append(metrics_both_and_ultradists[2])
-
-    ResultsForMax = pd.DataFrame(MetricsByMethodsForMax)
-    ResultsForSum = pd.DataFrame(MetricsByMethodsForSum)
-
-    return ResultsForMax, ResultsForSum, Samples, all_ultradists
-
-
-
-def RunCheck(Samples, FUNCOFMETHODS, dist_metric):
-
-    MetricsByMethodsForMax = {method_name: [] for method_name in FUNCOFMETHODS.keys()}
-    MetricsByMethodsForSum = {method_name: [] for method_name in FUNCOFMETHODS.keys()}
-    all_ultradists = {name: [] for name in FUNCOFMETHODS.keys()}
-
-    for sample in Samples:
-        for method_name, method_func in FUNCOFMETHODS.items():
-            metrics_both_and_ultradists = pipe(sample, method_func, dist_metric)
-            MetricsByMethodsForMax[method_name].append(metrics_both_and_ultradists[0])
-            MetricsByMethodsForSum[method_name].append(metrics_both_and_ultradists[1])
-            all_ultradists[method_name].append(metrics_both_and_ultradists[2])
-
-    ResultsForMax = pd.DataFrame(MetricsByMethodsForMax)
-    ResultsForSum = pd.DataFrame(MetricsByMethodsForSum)
-
-    return ResultsForMax, ResultsForSum, Samples, all_ultradists
-
-
-def ReadLogs(now):
+def ReadLogs(dir_name):
     file_names = (
         'TimeLogs',
         'Ultradists',
-        'Samples',
         'MetricsByMethodsForMax',
         'MetricsByMethodsForSum',
         'NameOfMethod',
@@ -198,7 +148,7 @@ def ReadLogs(now):
     filedata = dict()
 
     for name in file_names:
-        data_from_file = open(f'./LOGS/{now}/{name}', 'rb')
+        data_from_file = open(f'{dir_name}/{name}', 'rb')
         data_list = []
         while 1:
             try:
@@ -208,4 +158,4 @@ def ReadLogs(now):
         
         filedata[name] = data_list
     
-    return filedata['TimeLogs'], filedata['Ultradists'], filedata['Samples'], filedata['MetricsByMethodsForMax'], filedata['MetricsByMethodsForSum'], filedata['NameOfMethod'], filedata['NormDiff']
+    return filedata['TimeLogs'], filedata['Ultradists'], filedata['MetricsByMethodsForMax'], filedata['MetricsByMethodsForSum'], filedata['NameOfMethod'], filedata['NormDiff']
