@@ -1,6 +1,6 @@
 from Hierarchy.MinMaxMethod import MinMaxHierarchy
 from Hierarchy.MedianMethod import MedianHierarchy
-from Hierarchy.ToCulcMethods.Linkages import single_linked, complete_linked, group_average_linked, weighted_average_linked
+from Hierarchy.ToCulcMethods.Linkages import single_linked, complete_linked, group_average_linked, weighted_average_linked, ward_linked
 from Hierarchy.ToCulcMethods.UltrametricMatrix import ultramatrix
 from Hierarchy.StandartMethods import hierarchy
 import numpy as np
@@ -20,6 +20,7 @@ FUNCOFMETHODS = {
     'complete_linked': complete_linked,
     'group_average_linked': group_average_linked,
     'weighted_average_linked': weighted_average_linked,
+    'ward_linked': ward_linked,
     'min_max_linked': MinMaxHierarchy,
     'median_linked': MedianHierarchy
 }
@@ -90,8 +91,8 @@ def generator(func, size, sample_size, n_iter, dim):
     
     n_iter_format = str(n_iter) if n_iter < 1000 else f"{n_iter / 1000}k"
     Samples_name = f"{str(dim)+'dim'}-{sample_size}-{n_iter_format} {str(datetime.datetime.today().replace(microsecond=0))}"
-    os.mkdir(f"./new_LOGS/{Samples_name}")
-    file_name = f"./new_LOGS/{Samples_name}/Samples"
+    os.mkdir(f"./LOGS/{Samples_name}")
+    file_name = f"./LOGS/{Samples_name}/Samples"
 
     F_Samples = open(file_name, 'wb')
 

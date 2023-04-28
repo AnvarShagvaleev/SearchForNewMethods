@@ -1,4 +1,4 @@
-from Hierarchy.ToCulcMethods.UltrametricMatrix import count_clusters, nprint
+from Hierarchy.ToCulcMethods.UltrametricMatrix import count_clusters, flatten, nprint
 from Hierarchy.ToCulcMethods.Linkages import single_linked
 from ast import literal_eval as make_tuple
 import numpy as np
@@ -63,16 +63,20 @@ def hierarchy(points, metric='euclidean', method=single_linked, logs_turn_on=Fal
                     indices[0],
                     indices[1], 
                     i,
-                    clusters_param=count_clusters(make_tuple(new_cluster))
+                    clusters_param=count_clusters(make_tuple(new_cluster)) + (len(flatten(make_tuple(clusters[cur_index]))), ) #!!! + (len(fla...))
                 )
 
-        new_dist[0][0] = np.max(new_dist) + 1
+
+        max_val = np.max(new_dist) + 1
+        for i in range(len(new_dist)):
+            new_dist[i][i] = max_val
+
 
         dist_for_log = new_dist.copy()
         for i in range(len(dist_for_log)):
             dist_for_log[i][i] = 0
         nprint(f'Distance matrix: {k + 1} step', logs_turn_on)
-        nprint(pd.DataFrame(dist_for_log), logs_turn_on)
+        nprint(pd.DataFrame(dist_for_log, columns=clusters, index=clusters), logs_turn_on)
         nprint("\n\n", logs_turn_on)
 
         dist = new_dist.round(6)
