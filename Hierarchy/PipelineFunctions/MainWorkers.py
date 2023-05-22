@@ -47,11 +47,7 @@ def pipe(points, method, dist_metric):
     N_edge = n_points * (n_points - 1) / 2
     norm_sum_abs = np.sum(diff) / N_edge
 
-    start_matrix_copy = start_matrix.copy()
-    start_matrix_copy[start_matrix_copy == 0] = 1
-    norm_diff = diff / start_matrix_copy
-
-    return max_abs, norm_sum_abs, ultra_dists, norm_diff
+    return max_abs, norm_sum_abs, ultra_dists
 
 
 # Функция `times_when_method_better(results, res_column)` создает матрицу, которая показывает соотношение
@@ -69,7 +65,7 @@ def times_when_method_better(results):
     return ResultsMatrix.astype(float)
 
 
-def MakeDendogram(sample, ultras):
+def MakeDendogram(sample, ultras): ## НУЖНО ПЕРЕДЕЛАТЬ - РАБОТАЕТ НЕ ПРАВИЛЬНО
     temp = scipy_hierarchy.linkage(sample, 'single')
     temp[:, 2] = ultras
     plt.figure()
@@ -117,7 +113,6 @@ def RunExperiment(dist_metric, dir_name, Samples, FUNCOFMETHODS=FUNCOFMETHODS):
     F_Ultradists = open(f"{dir_name}/Ultradists", 'wb')
     F_NameOfMethod = open(f"{dir_name}/NameOfMethod", 'wb')
     F_TimeLogs = open(f"{dir_name}/TimeLogs", 'wb')
-    F_NormDiff = open(f"{dir_name}/NormDiff", "wb")
 
 
     for sample in tqdm(Samples):
@@ -129,7 +124,6 @@ def RunExperiment(dist_metric, dir_name, Samples, FUNCOFMETHODS=FUNCOFMETHODS):
             pickle.dump(metrics_both_and_ultradists[0], F_MetricsByMethodsForMax)
             pickle.dump(metrics_both_and_ultradists[1], F_MetricsByMethodsForSum)
             pickle.dump(metrics_both_and_ultradists[2], F_Ultradists)
-            pickle.dump(metrics_both_and_ultradists[3], F_NormDiff)
             pickle.dump(method_name, F_NameOfMethod)
             pickle.dump(tp2-tp1, F_TimeLogs)
 
@@ -142,8 +136,7 @@ def ReadLogs(dir_name):
         'Ultradists',
         'MetricsByMethodsForMax',
         'MetricsByMethodsForSum',
-        'NameOfMethod',
-        'NormDiff'
+        'NameOfMethod'
     )
 
     filedata = dict()
@@ -159,4 +152,4 @@ def ReadLogs(dir_name):
         
         filedata[name] = data_list
     
-    return filedata['TimeLogs'], filedata['Ultradists'], filedata['MetricsByMethodsForMax'], filedata['MetricsByMethodsForSum'], filedata['NameOfMethod'], filedata['NormDiff']
+    return filedata['TimeLogs'], filedata['Ultradists'], filedata['MetricsByMethodsForMax'], filedata['MetricsByMethodsForSum'], filedata['NameOfMethod']
